@@ -1,2 +1,2 @@
-# result53
-Result app of BIM Training through Claude
+# result-portal
+Institute Result Portal

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIM ফলাফল দেখুন</title>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e2b96f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BIM Result">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px 15px;
+    }
+
+    .wrapper { width: 100%; max-width: 500px; }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+    }
+
+    .logo { text-align: center; margin-bottom: 30px; }
+    .logo h1 { color: #e2b96f; font-size: 26px; font-weight: 700; }
+    .logo p { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 5px; }
+<!---->.student-name-en {
+  color: #e2b96f;
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+  margin-top: 8px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}-->
+    .student-name-en {
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 2px 0 5px;
+    }
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      color: rgba(255,255,255,0.8);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+      transition: border 0.3s;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.3); }
+    input:focus { border-color: #e2b96f; }
+select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  color: white;
+  font-size: 15px;
+  outline: none;
+  transition: border 0.3s;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e2b96f' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 12px;
+}
+
+select:focus { border-color: #e2b96f; }
+
+select option {
+  background: #16213e;
+  color: white;
+}
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #e2b96f, #c9963d);
+      border: none;
+      border-radius: 10px;
+      color: #1a1a2e;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity 0.3s, transform 0.2s;
+    }
+
+    .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      color: rgba(255,255,255,0.3);
+      font-size: 12px;
+    }
+.settings-box {
+  margin-bottom: 25px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.settings-header {
+  padding: 12px 16px;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  transition: background 0.2s;
+}
+
+.settings-header:hover { background: rgba(255,255,255,0.05); }
+
+.settings-body {
+  display: none;
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.btn-apply {
+  width: 100%;
+  padding: 10px;
+  background: rgba(226,185,111,0.15);
+  border: 1px solid #e2b96f;
+  border-radius: 8px;
+  color: #e2b96f;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-apply:hover { background: rgba(226,185,111,0.25); }
+    /* Loading */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.6);
+      font-size: 15px;
+    }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #e2b96f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    .error-box {
+      display: none;
+      margin-top: 20px;
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: #f87171;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    /* Result Card */
+    .result-card {
+      display: none;
+      margin-top: 30px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .result-header h2 { color: #e2b96f; font-size: 20px; margin-bottom: 5px; }
+
+    .student-name {
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 2px 0 5px;
+    }
+
+    .student-meta { color: rgba(255,255,255,0.5); font-size: 13px; }
+
+    .final-badge {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 8px 28px;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .badge-pass {
+      background: rgba(34,197,94,0.2);
+      color: #4ade80;
+      border: 1px solid #4ade80;
+    }
+
+    .badge-fail {
+      background: rgba(239,68,68,0.2);
+      color: #f87171;
+      border: 1px solid #f87171;
+    }
+
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 18px 10px;
+      margin-bottom: 25px;
+    }
+
+    .summary-item { text-align: center; }
+
+    .summary-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #e2b96f;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .subject-list { margin-bottom: 25px; }
+
+    .subject-title {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .subject-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      border-left: 4px solid transparent;
+      transition: transform 0.2s;
+    }
+
+    .subject-row:hover { transform: translateX(4px); }
+    .subject-row.pass  { border-left-color: #4ade80; }
+    .subject-row.fail  { border-left-color: #f87171; }
+
+    .subject-name { color: white; font-size: 15px; font-weight: 500; }
+
+    .subject-right { display: flex; align-items: center; gap: 12px; }
+
+    .subject-mark { color: #e2b96f; font-size: 20px; font-weight: 700; }
+
+    .subject-grade {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .grade-ap { background: rgba(34,197,94,0.2);  color: #4ade80; }
+    .grade-a  { background: rgba(34,197,94,0.2);  color: #4ade80; }
+    .grade-b  { background: rgba(59,130,246,0.2); color: #60a5fa; }
+    .grade-c  { background: rgba(234,179,8,0.2);  color: #facc15; }
+    .grade-d  { background: rgba(249,115,22,0.2); color: #fb923c; }
+    .grade-f  { background: rgba(239,68,68,0.2);  color: #f87171; }
+
+    .btn-download {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.3s, transform 0.2s;
+    }
+.btn-email {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.3s, transform 0.2s;
+  margin-bottom: 12px;
+}
+
+.btn-email:hover { opacity: 0.9; transform: translateY(-2px); }
+    .btn-download:hover { opacity: 0.9; transform: translateY(-2px); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- INPUT CARD -->
+  <div class="card">
+  <div class="settings-box" id="settingsBox" style="display:none;">
+  <div class="settings-header" onclick="toggleSettings()">
+    ⚙️ Sheet Settings <span id="settingsArrow">▼</span>
+  </div>
+  <div class="settings-body" id="settingsBody">
+    <label style="font-size:12px; color:rgba(255,255,255,0.6);">
+      Google Sheet Link বা ID
+    </label>
+    <input 
+      type="text" 
+      id="sheetInput" 
+      placeholder="Sheet link বা ID paste করুন"
+      style="margin-bottom:8px;"
+    >
+    <button class="btn-apply" onclick="applySheet()">✔ Apply করুন</button>
+  </div>
+</div>
+    <div class="logo">
+      <h1>🎓 BIM Result Portal</h1>
+      <p>Bangladesh Institute of Management</p>
+    </div>
+
+<div class="form-group">
+  <label>Course Name</label>
+  <select id="courseName" onchange="loadBatches()">
+    <option value="">-- কোর্স লোড হচ্ছে... --</option>
+  </select>
+</div>
+
+<div class="form-group">
+  <label>Batch Number</label>
+  <select id="batchNumber">
+    <option value="">-- আগে কোর্স সিলেক্ট করুন --</option>
+  </select>
+</div>
+
+<div class="form-group">
+      <label>Student ID</label>
+      <input type="text" id="studentId" placeholder="আপনার ID লিখুন">
+</div>
+    <button class="btn" onclick="fetchResult()">ফলাফল দেখুন</button>
+
+    <div class="footer">© 2025 BIM · Special Foundation Training</div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    তথ্য খোঁজা হচ্ছে...
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- RESULT CARD -->
+  <div class="result-card" id="resultCard"></div>
+
+</div>
+
+<script>
+  emailjs.init('GNxyiAeJ7fOzThuGt');
+  let SHEET_ID = '1hv-KwIXk92vwlUJC08iZWFMznsRQGlMrgdvYii07VfY';
+  let currentEmail = ''; // email এখানে store হবে
+
+  function toggleSettings() {
+    const body  = document.getElementById('settingsBody');
+    const arrow = document.getElementById('settingsArrow');
+    const open  = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    arrow.textContent  = open ? '▼' : '▲';
+  }
+
+  function applySheet() {
+    const input = document.getElementById('sheetInput').value.trim();
+    if (!input) { alert('Sheet link বা ID দিন।'); return; }
+    const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    SHEET_ID = match ? match[1] : input;
+    document.getElementById('settingsBody').style.display = 'none';
+    document.getElementById('settingsArrow').textContent  = '▼';
+    loadCourses();
+    alert('✔ Sheet সংযুক্ত হয়েছে!');
+  }
+
+async function loadCourses() {
+  try {
+    const url  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+    const res  = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    
+    // সব data global এ রাখো
+    window.allRows = json.table.rows;
+
+    const courses = [...new Set(
+      window.allRows.map(r => r.c[3]?.v?.toString().trim()).filter(Boolean)
+    )];
+
+    const select = document.getElementById('courseName');
+    select.innerHTML = '<option value="">-- কোর্স সিলেক্ট করুন --</option>';
+    courses.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      select.appendChild(opt);
+    });
+
+    // Batch reset
+    document.getElementById('batchNumber').innerHTML = 
+      '<option value="">-- আগে কোর্স সিলেক্ট করুন --</option>';
+
+  } catch (err) {
+    console.error('Course load error:', err);
+  }
+}
+
+  window.addEventListener('load', loadCourses);
+
+function loadBatches() {
+  const selectedCourse = document.getElementById('courseName').value;
+  const batchSelect    = document.getElementById('batchNumber');
+
+  if (!selectedCourse) {
+    batchSelect.innerHTML = '<option value="">-- আগে কোর্স সিলেক্ট করুন --</option>';
+    return;
+  }
+
+  // সেই course এর unique batch গুলো বের করো
+  const batches = [...new Set(
+    window.allRows
+      .filter(r => r.c[3]?.v?.toString().trim() === selectedCourse)
+      .map(r => r.c[4]?.v?.toString().trim())
+      .filter(Boolean)
+  )].sort((a, b) => Number(a) - Number(b));
+
+  batchSelect.innerHTML = '<option value="">-- ব্যাচ সিলেক্ট করুন --</option>';
+  batches.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b;
+    opt.textContent = `Batch ${b}`;
+    batchSelect.appendChild(opt);
+  });
+}
+
+  function getGrade(mark) {
+    if (mark >= 80) return { label: 'A+', cls: 'grade-ap' };
+    if (mark >= 70) return { label: 'A',  cls: 'grade-a'  };
+    if (mark >= 60) return { label: 'B',  cls: 'grade-b'  };
+    if (mark >= 50) return { label: 'C',  cls: 'grade-c'  };
+    if (mark >= 40) return { label: 'D',  cls: 'grade-d'  };
+    return               { label: 'F',  cls: 'grade-f'  };
+  }
+
+  async function fetchResult() {
+    const studentId  = document.getElementById('studentId').value.trim();
+    const courseName = document.getElementById('courseName').value;
+    const batchNo = document.getElementById('batchNumber').value;
+
+    if (!studentId || !courseName || !batchNo) {
+      showError('অনুগ্রহ করে সব তথ্য পূরণ করুন।');
+      return;
+    }
+
+    hide('resultCard');
+    hide('errorBox');
+    show('loading');
+
+    try {
+      const url  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+      const res  = await fetch(url);
+      const text = await res.text();
+      const json = JSON.parse(text.substring(47).slice(0, -2));
+      const rows = json.table.rows;
+      const cols = json.table.cols;
+
+      let found = null;
+      for (const row of rows) {
+        const id     = row.c[0]?.v?.toString().trim();
+        const course = row.c[3]?.v?.toString().trim().toLowerCase();
+        const batch  = row.c[4]?.v?.toString().trim();
+
+        if (
+          id     === studentId &&
+          course === courseName.toLowerCase() &&
+          (batch === batchNo || batch === Number(batchNo).toString())
+        ) {
+          found = row;
+          break;
+        }
+      }
+
+      hide('loading');
+
+      if (!found) {
+        showError('❌ তথ্য পাওয়া যায়নি। ID, কোর্স এবং ব্যাচ নম্বর সঠিক কিনা যাচাই করুন।');
+        return;
+      }
+
+      const nameEn  = found.c[1]?.v || '';
+      currentEmail  = found.c[2]?.v || ''; // global variable এ save
+      const course  = found.c[3]?.v || '';
+      const batch   = found.c[4]?.v || '';
+
+      const subjects = [];
+      for (let i = 5; i < cols.length; i++) {
+        const subName = cols[i].label;
+        const mark    = found.c[i]?.v ?? null;
+        if (subName && mark !== null) {
+          subjects.push({ name: subName, mark: Number(mark) });
+        }
+      }
+
+      const total  = subjects.reduce((s, x) => s + x.mark, 0);
+      const avg    = subjects.length ? (total / subjects.length).toFixed(1) : 0;
+      const overall = getGrade(Number(avg));
+      const passed  = subjects.every(s => s.mark >= 40);
+
+      const subjectRows = subjects.map(s => {
+        const g   = getGrade(s.mark);
+        const cls = s.mark >= 40 ? 'pass' : 'fail';
+        return `
+          <div class="subject-row ${cls}">
+            <span class="subject-name">${s.name}</span>
+            <div class="subject-right">
+              <span class="subject-mark">${s.mark}</span>
+              <span class="subject-grade ${g.cls}">${g.label}</span>
+            </div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('resultCard').innerHTML = `
+        <div class="result-header">
+          <h2>🎓 পরীক্ষার ফলাফল</h2> 
+          <div class="student-name-en">${nameEn}</div>
+          <!--<div class="student-name">${nameEn}</div>-->
+          <div class="student-meta">ID: ${studentId} &nbsp;|&nbsp; Batch: ${batch}</div>
+          <div class="student-meta">${course}</div>
+          <span class="final-badge ${passed ? 'badge-pass' : 'badge-fail'}">
+            ${passed ? '✔ উত্তীর্ণ' : '✘ অনুত্তীর্ণ'}
+          </span>
+        </div>
+
+        <div class="summary">
+          <div class="summary-item">
+            <div class="summary-value">${total}</div>
+            <div class="summary-label">মোট নম্বর</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value">${avg}%</div>
+            <div class="summary-label">গড়</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-value">${overall.label}</div>
+            <div class="summary-label">গ্রেড</div>
+          </div>
+        </div>
+
+        <div class="subject-list">
+          <div class="subject-title">বিষয়ভিত্তিক ফলাফল</div>
+          ${subjectRows}
+        </div>
+
+        <button class="btn-download" onclick="downloadPDF()">
+          ⬇ PDF ডাউনলোড করুন
+        </button>
+      `;
+
+      show('resultCard');
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (err) {
+      hide('loading');
+      showError('সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      console.error(err);
+    }
+  }
+
+  async function sendEmail() {
+    const btn = document.getElementById('emailBtn');
+    btn.textContent = '⏳ পাঠানো হচ্ছে...';
+    btn.disabled = true;
+
+    try {
+      const nameEnEl   = document.querySelector('.student-name-en');
+      const metaEls    = document.querySelectorAll('.student-meta');
+      const allVals    = document.querySelectorAll('.summary-value');
+      const badgeEl    = document.querySelector('.final-badge');
+
+      const candidateName = nameEnEl?.textContent  || '';
+      const idBatch       = metaEls[0]?.textContent || '';
+      const courseName    = metaEls[1]?.textContent || '';
+      const totalMarks    = allVals[0]?.textContent || '';
+      const average       = allVals[1]?.textContent || '';
+      const grade         = allVals[2]?.textContent || '';
+      const resultStatus  = badgeEl?.textContent    || '';
+
+      if (!currentEmail) {
+        alert('Email address পাওয়া যায়নি।');
+        btn.textContent = '📧 Email পাঠান';
+        btn.disabled = false;
+        return;
+      }
+
+      await emailjs.send('service_hi00o4j', 'template_2p7tmqu', {
+        candidate_name : candidateName,
+        course_name    : courseName,
+        batch_no       : idBatch,
+        total_marks    : totalMarks,
+        average        : average,
+        grade          : grade,
+        result_status  : resultStatus,
+        to_email       : currentEmail,
+      });
+
+      btn.textContent = '✔ Email পাঠানো হয়েছে!';
+      btn.style.background = 'linear-gradient(135deg, #4ade80, #16a34a)';
+
+    } catch (err) {
+      alert('Email পাঠাতে সমস্যা হয়েছে।');
+      btn.textContent = '📧 Email পাঠান';
+      btn.disabled = false;
+      console.error(err);
+    }
+  }
+
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const gold  = [226, 185, 111];
+    const dark  = [26,  26,  46];
+    const green = [74,  222, 128];
+    const red   = [248, 113, 113];
+    const white = [255, 255, 255];
+    const gray  = [180, 180, 180];
+
+    const pageW = doc.internal.pageSize.getWidth();
+
+    doc.setFillColor(...dark);
+    doc.rect(0, 0, pageW, 45, 'F');
+
+    doc.setFontSize(20);
+    doc.setTextColor(...gold);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BIM Result Portal', pageW / 2, 18, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(...gray);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Bangladesh Institute of Management', pageW / 2, 27, { align: 'center' });
+    doc.text('Special Foundation Training', pageW / 2, 34, { align: 'center' });
+
+    const allVals  = document.getElementById('resultCard').querySelectorAll('.summary-value');
+    const badgeEl  = document.getElementById('resultCard').querySelector('.final-badge');
+    const metaEls  = document.getElementById('resultCard').querySelectorAll('.student-meta');
+    const nameEnEl = document.querySelector('.student-name-en');
+
+    const nameEnTxt = nameEnEl?.textContent || '';
+    const idBatch   = metaEls[0]?.textContent || '';
+    const course    = metaEls[1]?.textContent || '';
+    const badge     = badgeEl?.textContent    || '';
+    const total     = allVals[0]?.textContent || '';
+    const avg       = allVals[1]?.textContent || '';
+    const grade     = allVals[2]?.textContent || '';
+    const passed    = !badge.includes('অনু');
+
+    doc.setFillColor(240, 240, 250);
+    doc.roundedRect(14, 52, pageW - 28, 32, 3, 3, 'F');
+
+    doc.setFontSize(13);
+    doc.setTextColor(...dark);
+    doc.setFont('helvetica', 'bold');
+    doc.text(nameEnTxt, 20, 61);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text(idBatch, 20, 69);
+    doc.text(course,  20, 76);
+
+    doc.setFillColor(...(passed ? green : red));
+    doc.roundedRect(pageW - 55, 54, 40, 12, 3, 3, 'F');
+    doc.setTextColor(...white);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(passed ? 'PASSED' : 'FAILED', pageW - 35, 62, { align: 'center' });
+
+    const boxes = [
+      { label: 'Total Marks', value: total },
+      { label: 'Average',     value: avg   },
+      { label: 'Grade',       value: grade },
+    ];
+
+    boxes.forEach((b, i) => {
+      const x = 14 + i * 62;
+      doc.setFillColor(...dark);
+      doc.roundedRect(x, 92, 56, 22, 3, 3, 'F');
+      doc.setTextColor(...gold);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(b.value, x + 28, 104, { align: 'center' });
+      doc.setFontSize(8);
+      doc.setTextColor(...gray);
+      doc.setFont('helvetica', 'normal');
+      doc.text(b.label, x + 28, 111, { align: 'center' });
+    });
+
+    const rows = document.getElementById('resultCard').querySelectorAll('.subject-row');
+    const tableData = [];
+    rows.forEach((row, idx) => {
+      const subName = row.querySelector('.subject-name')?.textContent || '';
+      const mark    = row.querySelector('.subject-mark')?.textContent || '';
+      const grd     = row.querySelector('.subject-grade')?.textContent || '';
+      const status  = row.classList.contains('pass') ? 'Pass' : 'Fail';
+      tableData.push([idx + 1, subName, mark, grd, status]);
+    });
+
+    doc.autoTable({
+      startY: 122,
+      head: [['#', 'Subject', 'Marks', 'Grade', 'Status']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: dark, textColor: gold, fontStyle: 'bold', halign: 'center' },
+      bodyStyles: { textColor: [40, 40, 40], halign: 'center' },
+      columnStyles: { 1: { halign: 'left' } },
+      alternateRowStyles: { fillColor: [245, 245, 255] },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 4) {
+          data.cell.styles.textColor = data.cell.raw === 'Pass' ? [22, 163, 74] : [220, 38, 38];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 12;
+    doc.setFontSize(9);
+    doc.setTextColor(...gray);
+    doc.text(
+      'Generated by BIM Result Portal  |  ' + new Date().toLocaleDateString('en-BD'),
+      pageW / 2, finalY, { align: 'center' }
+    );
+
+    doc.save(`${nameEnTxt}'s_Result.pdf`);
+  }
+
+  function show(id) { document.getElementById(id).style.display = 'block'; }
+  function hide(id) { document.getElementById(id).style.display = 'none';  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorBox');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

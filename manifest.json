@@ -1,0 +1,22 @@
+{
+  "name": "BIM Result Portal",
+  "short_name": "BIM Result",
+  "description": "Bangladesh Institute of Management Result Portal",
+  "start_url": "/result-portal/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#e2b96f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/graduation-cap.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/graduation-cap.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
